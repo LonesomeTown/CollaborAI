@@ -1,0 +1,17 @@
+server:
+  port: ${PORT:8080}
+spring:
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: collaborai
+      username: admin
+      password: admin
+      authentication-database: admin
+logging:
+  level:
+    org.springframework.data.mongodb.core: debug
+vaadin:
+  launch-browser: true
+  whitelisted-packages: com.vaadin,org.vaadin,dev.hilla,com.smu
