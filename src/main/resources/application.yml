@@ -15,3 +15,6 @@ logging:
 vaadin:
   launch-browser: true
   whitelisted-packages: com.vaadin,org.vaadin,dev.hilla,com.smu
+api:
+  completion-model: "text-davinci-003"
+  completion-temperature: 0.5

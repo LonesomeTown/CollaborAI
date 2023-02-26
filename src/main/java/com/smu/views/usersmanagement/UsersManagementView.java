@@ -1,6 +1,6 @@
 package com.smu.views.usersmanagement;
 
-import com.smu.data.entity.SamplePerson;
+import com.smu.data.entity.Person;
 import com.smu.service.SamplePersonService;
 import com.smu.views.MainLayout;
 import com.vaadin.flow.component.UI;
@@ -44,7 +44,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     private final String SAMPLEPERSON_ID = "samplePersonID";
     private final String SAMPLEPERSON_EDIT_ROUTE_TEMPLATE = "user-details/%s/edit";
 
-    private final Grid<SamplePerson> grid = new Grid<>(SamplePerson.class, false);
+    private final Grid<Person> grid = new Grid<>(Person.class, false);
 
     private TextField firstName;
     private TextField lastName;
@@ -58,9 +58,9 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
 
-    private final BeanValidationBinder<SamplePerson> binder;
+    private final BeanValidationBinder<Person> binder;
 
-    private SamplePerson samplePerson;
+    private Person samplePerson;
 
     private final SamplePersonService samplePersonService;
 
@@ -84,7 +84,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         grid.addColumn("dateOfBirth").setAutoWidth(true);
         grid.addColumn("occupation").setAutoWidth(true);
         grid.addColumn("role").setAutoWidth(true);
-        LitRenderer<SamplePerson> importantRenderer = LitRenderer.<SamplePerson>of(
+        LitRenderer<Person> importantRenderer = LitRenderer.<Person>of(
                 "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
                 .withProperty("icon", important -> important.isImportant() ? "check" : "minus").withProperty("color",
                         important -> important.isImportant()
@@ -109,7 +109,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         });
 
         // Configure Form
-        binder = new BeanValidationBinder<>(SamplePerson.class);
+        binder = new BeanValidationBinder<>(Person.class);
 
         // Bind fields. This is where you'd define e.g. validation rules
 
@@ -123,7 +123,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         save.addClickListener(e -> {
             try {
                 if (this.samplePerson == null) {
-                    this.samplePerson = new SamplePerson();
+                    this.samplePerson = new Person();
                 }
                 binder.writeBean(this.samplePerson);
                 samplePersonService.update(this.samplePerson);
@@ -146,7 +146,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<String> samplePersonId = event.getRouteParameters().get(SAMPLEPERSON_ID);
         if (samplePersonId.isPresent()) {
-            Optional<SamplePerson> samplePersonFromBackend = samplePersonService.get(new ObjectId(samplePersonId.get()));
+            Optional<Person> samplePersonFromBackend = samplePersonService.get(new ObjectId(samplePersonId.get()));
             if (samplePersonFromBackend.isPresent()) {
                 populateForm(samplePersonFromBackend.get());
             } else {
@@ -211,7 +211,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         populateForm(null);
     }
 
-    private void populateForm(SamplePerson value) {
+    private void populateForm(Person value) {
         this.samplePerson = value;
         binder.readBean(this.samplePerson);
 

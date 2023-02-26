@@ -1,6 +1,6 @@
 package com.smu.service;
 
-import com.smu.data.entity.SamplePerson;
+import com.smu.data.entity.Person;
 import java.util.Optional;
 
 import com.smu.repository.SamplePersonRepository;
@@ -18,11 +18,11 @@ public class SamplePersonService {
         this.repository = repository;
     }
 
-    public Optional<SamplePerson> get(ObjectId id) {
+    public Optional<Person> get(ObjectId id) {
         return repository.findById(id);
     }
 
-    public SamplePerson update(SamplePerson entity) {
+    public Person update(Person entity) {
         return repository.save(entity);
     }
 
@@ -30,7 +30,7 @@ public class SamplePersonService {
         repository.deleteById(id);
     }
 
-    public Page<SamplePerson> list(Pageable pageable) {
+    public Page<Person> list(Pageable pageable) {
         return repository.findAll(pageable);
     }
 

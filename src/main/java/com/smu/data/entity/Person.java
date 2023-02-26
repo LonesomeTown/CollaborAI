@@ -10,7 +10,7 @@ import javax.persistence.Entity;
 import javax.validation.constraints.Email;
 
 @Data
-public class SamplePerson implements Serializable {
+public class Person implements Serializable {
     @MongoId
     private ObjectId id;
     private String firstName;

@@ -1,5 +1,6 @@
 package com.smu.views.chatroom;
 
+import com.smu.security.AuthenticatedUser;
 import com.smu.views.MainLayout;
 import com.vaadin.collaborationengine.CollaborationAvatarGroup;
 import com.vaadin.collaborationengine.CollaborationMessageInput;
@@ -91,8 +92,9 @@ public class ChatRoomView extends HorizontalLayout {
             new ChatInfo("Image generation", 0)};
     private ChatInfo currentChat = chats[0];
     private Tabs tabs;
-
-    public ChatRoomView() {
+    private final AuthenticatedUser authenticatedUser;
+    public ChatRoomView(AuthenticatedUser authenticatedUser) {
+        this.authenticatedUser = authenticatedUser;
         addClassNames("chat-room-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
@@ -102,7 +104,11 @@ public class ChatRoomView extends HorizontalLayout {
         // identifier, and the user's real name. You can also provide the users
         // avatar by passing an url to the image as a third parameter, or by
         // configuring an `ImageProvider` to `avatarGroup`.
-        UserInfo userInfo = new UserInfo(UUID.randomUUID().toString(), "Steve Lange");
+        String username = "";
+        if(authenticatedUser.get().isPresent()){
+            username = authenticatedUser.get().get().getUsername();
+        }
+        UserInfo userInfo = new UserInfo(UUID.randomUUID().toString(), username);
 
         tabs = new Tabs();
         for (ChatInfo chat : chats) {

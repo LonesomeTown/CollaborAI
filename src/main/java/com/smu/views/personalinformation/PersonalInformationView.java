@@ -1,6 +1,6 @@
 package com.smu.views.personalinformation;
 
-import com.smu.data.entity.SamplePerson;
+import com.smu.data.entity.Person;
 import com.smu.service.SamplePersonService;
 import com.smu.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -39,7 +39,7 @@ public class PersonalInformationView extends Div {
     private Button cancel = new Button("Cancel");
     private Button save = new Button("Save");
 
-    private Binder<SamplePerson> binder = new Binder<>(SamplePerson.class);
+    private Binder<Person> binder = new Binder<>(Person.class);
 
     public PersonalInformationView(SamplePersonService personService) {
         addClassName("personal-information-view");
@@ -60,7 +60,7 @@ public class PersonalInformationView extends Div {
     }
 
     private void clearForm() {
-        binder.setBean(new SamplePerson());
+        binder.setBean(new Person());
     }
 
     private Component createTitle() {
