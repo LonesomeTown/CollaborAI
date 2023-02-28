@@ -1,6 +1,6 @@
 package com.smu.data.entity;
 
-import com.smu.data.Role;
+import com.smu.data.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -10,12 +10,9 @@ import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.Lob;
-import javax.persistence.Table;
 
 @Data
 public class User implements Serializable {

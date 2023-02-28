@@ -11,5 +11,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 public interface ApiKeyRepository extends MongoRepository<ApiKey,String> {
     ApiKey findByIsActive(Boolean isActive);
 
-    String findAccessKeyByIsActive(Boolean isActive);
+    ApiKey findAccessKeyByIsActive(Boolean isActive);
 }

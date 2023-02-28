@@ -1,5 +1,6 @@
 package com.smu.apis;
 
+import com.smu.data.entity.ApiKey;
 import com.smu.repository.ApiKeyRepository;
 import com.theokanning.openai.completion.CompletionChoice;
 import com.theokanning.openai.completion.CompletionRequest;
@@ -26,17 +27,20 @@ public class TextCompletionApi {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    public String getCompletionText(String userInput){
-        String accessKey = apiKeyRepository.findAccessKeyByIsActive(true);
+    public String getCompletionText(String userInput) {
+        ApiKey apiKey = apiKeyRepository.findAccessKeyByIsActive(true);
+        if (null == apiKey) {
+            return "";
+        }
+        String accessKey = apiKey.getAccessKey();
         OpenAiService openAiService = new OpenAiService(accessKey);
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .prompt(userInput)
                 .model(model)
                 .temperature(temperature)
-                .echo(true)
                 .build();
         List<CompletionChoice> choices = openAiService.createCompletion(completionRequest).getChoices();
-        return choices.get(0).getText();
+        return choices.get(0).getText().replace("\n\n", "");
     }
 
 

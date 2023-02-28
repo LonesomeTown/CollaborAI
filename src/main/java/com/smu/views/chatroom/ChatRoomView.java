@@ -1,5 +1,8 @@
 package com.smu.views.chatroom;
 
+import com.smu.apis.TextCompletionApi;
+import com.smu.data.constant.ApiTypes;
+import com.smu.data.entity.ChatRobot;
 import com.smu.security.AuthenticatedUser;
 import com.smu.views.MainLayout;
 import com.vaadin.collaborationengine.CollaborationAvatarGroup;
@@ -12,6 +15,7 @@ import com.vaadin.flow.component.html.Aside;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
@@ -33,6 +37,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.UUID;
 
 @PageTitle("Chat Room")
@@ -83,8 +89,8 @@ public class ChatRoomView extends HorizontalLayout {
             updateBadge();
         }
 
-        public String getCollaborationTopic() {
-            return "chat/" + name;
+        public String getCollaborationTopic(String userId) {
+            return "chat/" + name + userId;
         }
     }
 
@@ -93,8 +99,11 @@ public class ChatRoomView extends HorizontalLayout {
     private ChatInfo currentChat = chats[0];
     private Tabs tabs;
     private final AuthenticatedUser authenticatedUser;
-    public ChatRoomView(AuthenticatedUser authenticatedUser) {
+    private final TextCompletionApi textCompletionApi;
+
+    public ChatRoomView(AuthenticatedUser authenticatedUser, TextCompletionApi textCompletionApi) {
         this.authenticatedUser = authenticatedUser;
+        this.textCompletionApi = textCompletionApi;
         addClassNames("chat-room-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
@@ -105,15 +114,18 @@ public class ChatRoomView extends HorizontalLayout {
         // avatar by passing an url to the image as a third parameter, or by
         // configuring an `ImageProvider` to `avatarGroup`.
         String username = "";
-        if(authenticatedUser.get().isPresent()){
+        String userId = "";
+        if (authenticatedUser.get().isPresent()) {
             username = authenticatedUser.get().get().getUsername();
+            userId = authenticatedUser.get().get().getId().toString();
         }
-        UserInfo userInfo = new UserInfo(UUID.randomUUID().toString(), username);
+        UserInfo userInfo = new UserInfo(userId, username);
+        UserInfo robot = new ChatRobot();
 
         tabs = new Tabs();
         for (ChatInfo chat : chats) {
             // Listen for new messages in each chat so we can update the "unread" count
-            MessageManager mm = new MessageManager(this, userInfo, chat.getCollaborationTopic());
+            MessageManager mm = new MessageManager(this, userInfo, chat.getCollaborationTopic(userInfo.getId()));
             mm.setMessageHandler(context -> {
                 if (currentChat != chat) {
                     chat.incrementUnread();
@@ -130,7 +142,7 @@ public class ChatRoomView extends HorizontalLayout {
         // the current user using the component, and a topic Id. Topic id can be
         // any freeform string. In this template, we have used the format
         // "chat/#general".
-        CollaborationMessageList list = new CollaborationMessageList(userInfo, currentChat.getCollaborationTopic());
+        CollaborationMessageList list = new CollaborationMessageList(userInfo, currentChat.getCollaborationTopic(userInfo.getId()));
         list.setSizeFull();
 
         // `CollaborationMessageInput is a textfield and button, to be able to
@@ -139,6 +151,30 @@ public class ChatRoomView extends HorizontalLayout {
         // constructor argument to get the information from there.
         CollaborationMessageInput input = new CollaborationMessageInput(list);
         input.setWidthFull();
+
+        MessageManager messageManager = new MessageManager(this, userInfo, currentChat.getCollaborationTopic(userInfo.getId()));
+        MessageManager robotManager = new MessageManager(this, robot, currentChat.getCollaborationTopic(userInfo.getId()));
+        // Set up your desired message response
+        String autoReply = "Thank you for your message! We will get back to you soon.";
+
+        // Set the message handler
+        messageManager.setMessageHandler(message -> {
+            String incomingMessage = message.getMessage().getText();
+
+            if (StringUtils.isNotBlank(incomingMessage) && !message.getMessage().getUser().getId().equals(robot.getId())) {
+                if (ApiTypes.TEXT_COMPLETION.equals(currentChat.name)) {
+                    String reply = textCompletionApi.getCompletionText(incomingMessage);
+                    if (StringUtils.isNotEmpty(reply)) {
+                        try {
+                            robotManager.submit(reply);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+            }
+        });
 
         // Layouting
 
@@ -170,7 +206,7 @@ public class ChatRoomView extends HorizontalLayout {
         tabs.addSelectedChangeListener(event -> {
             currentChat = ((ChatTab) event.getSelectedTab()).getChatInfo();
             currentChat.resetUnread();
-            list.setTopic(currentChat.getCollaborationTopic());
+            list.setTopic(currentChat.getCollaborationTopic(userInfo.getId()));
         });
     }
 

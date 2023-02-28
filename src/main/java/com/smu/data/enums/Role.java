@@ -1,4 +1,4 @@
-package com.smu.data;
+package com.smu.data.enums;
 
 public enum Role {
     USER, ADMIN;
