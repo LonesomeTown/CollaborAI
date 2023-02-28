@@ -4,6 +4,7 @@ import com.smu.apis.TextCompletionApi;
 import com.smu.data.constant.ApiTypes;
 import com.smu.data.entity.ChatRobot;
 import com.smu.security.AuthenticatedUser;
+import com.smu.service.AsyncService;
 import com.smu.views.MainLayout;
 import com.vaadin.collaborationengine.CollaborationAvatarGroup;
 import com.vaadin.collaborationengine.CollaborationMessageInput;
@@ -37,6 +38,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.UUID;
@@ -45,6 +48,7 @@ import java.util.UUID;
 @Route(value = "chat-room", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 @AnonymousAllowed
+@Slf4j
 public class ChatRoomView extends HorizontalLayout {
 
     public static class ChatTab extends Tab {
@@ -99,11 +103,11 @@ public class ChatRoomView extends HorizontalLayout {
     private ChatInfo currentChat = chats[0];
     private Tabs tabs;
     private final AuthenticatedUser authenticatedUser;
-    private final TextCompletionApi textCompletionApi;
+    private final AsyncService asyncService;
 
-    public ChatRoomView(AuthenticatedUser authenticatedUser, TextCompletionApi textCompletionApi) {
+    public ChatRoomView(AuthenticatedUser authenticatedUser, AsyncService asyncService) {
         this.authenticatedUser = authenticatedUser;
-        this.textCompletionApi = textCompletionApi;
+        this.asyncService = asyncService;
         addClassNames("chat-room-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
@@ -154,30 +158,17 @@ public class ChatRoomView extends HorizontalLayout {
 
         MessageManager messageManager = new MessageManager(this, userInfo, currentChat.getCollaborationTopic(userInfo.getId()));
         MessageManager robotManager = new MessageManager(this, robot, currentChat.getCollaborationTopic(userInfo.getId()));
-        // Set up your desired message response
-        String autoReply = "Thank you for your message! We will get back to you soon.";
 
         // Set the message handler
         messageManager.setMessageHandler(message -> {
             String incomingMessage = message.getMessage().getText();
 
             if (StringUtils.isNotBlank(incomingMessage) && !message.getMessage().getUser().getId().equals(robot.getId())) {
-                if (ApiTypes.TEXT_COMPLETION.equals(currentChat.name)) {
-                    String reply = textCompletionApi.getCompletionText(incomingMessage);
-                    if (StringUtils.isNotEmpty(reply)) {
-                        try {
-                            robotManager.submit(reply);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
+                asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
             }
         });
 
         // Layouting
-
         VerticalLayout chatContainer = new VerticalLayout();
         chatContainer.addClassNames(Flex.AUTO, Overflow.HIDDEN);
 

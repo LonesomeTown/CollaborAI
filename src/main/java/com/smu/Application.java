@@ -8,6 +8,7 @@ import com.vaadin.flow.theme.Theme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * The entry point of the Spring Boot application.
@@ -23,6 +24,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @NpmPackage(value = "@vaadin-component-factory/vcf-nav", version = "1.0.6")
 @PWA(name = "CollaborAI", shortName = "CollaborAI", offlineResources = {})
 @EnableMongoRepositories(basePackages = {"com.smu.repository"})
+@EnableAsync
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {

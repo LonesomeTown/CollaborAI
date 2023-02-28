@@ -28,5 +28,6 @@ public class User implements Serializable {
     private Set<Role> roles;
     @Column(length = 1000000)
     private byte[] profilePicture;
+    private boolean isActive;
 
 }

@@ -1,6 +1,7 @@
 package com.smu.service;
 
 import com.smu.data.entity.Person;
+
 import java.util.Optional;
 
 import com.smu.repository.SamplePersonRepository;
@@ -10,32 +11,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SamplePersonService {
+public interface SamplePersonService {
 
-    private final SamplePersonRepository repository;
+    Optional<Person> get(ObjectId id);
 
-    public SamplePersonService(SamplePersonRepository repository) {
-        this.repository = repository;
-    }
+    Person update(Person entity);
 
-    public Optional<Person> get(ObjectId id) {
-        return repository.findById(id);
-    }
+    void delete(ObjectId id);
 
-    public Person update(Person entity) {
-        return repository.save(entity);
-    }
+    Page<Person> list(Pageable pageable);
 
-    public void delete(ObjectId id) {
-        repository.deleteById(id);
-    }
-
-    public Page<Person> list(Pageable pageable) {
-        return repository.findAll(pageable);
-    }
-
-    public int count() {
-        return (int) repository.count();
-    }
-
+    int count();
 }

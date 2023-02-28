@@ -3,6 +3,7 @@ package com.smu.data.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,8 @@ import java.time.LocalDateTime;
  */
 @Data
 public class ApiKey {
+    @MongoId
+    private ObjectId id;
     @JsonIgnore
     private String accessKey;
     private LocalDateTime createDate;

@@ -86,8 +86,8 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         grid.addColumn("role").setAutoWidth(true);
         LitRenderer<Person> importantRenderer = LitRenderer.<Person>of(
                 "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
-                .withProperty("icon", important -> important.isImportant() ? "check" : "minus").withProperty("color",
-                        important -> important.isImportant()
+                .withProperty("icon", important -> important.isSponsor() ? "check" : "minus").withProperty("color",
+                        important -> important.isSponsor()
                                 ? "var(--lumo-primary-text-color)"
                                 : "var(--lumo-disabled-text-color)");
 
