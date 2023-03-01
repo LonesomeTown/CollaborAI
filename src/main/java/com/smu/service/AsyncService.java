@@ -1,7 +1,7 @@
 package com.smu.service;
 
-import com.smu.apis.TextCompletionApi;
-import com.smu.data.constant.ApiTypes;
+import com.smu.apis.ChatGptApi;
+import com.smu.data.constant.ChatTabs;
 import com.vaadin.collaborationengine.MessageManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,16 +16,16 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AsyncService {
-    private final TextCompletionApi textCompletionApi;
+    private final ChatGptApi textCompletionApi;
 
-    public AsyncService(TextCompletionApi textCompletionApi) {
+    public AsyncService(ChatGptApi textCompletionApi) {
         this.textCompletionApi = textCompletionApi;
     }
 
     @Async
     public void generateAutoReply(MessageManager messageManager, String incomingMsg, String tabName) {
         String reply = "";
-        if (ApiTypes.TEXT_COMPLETION.equals(tabName)) {
+        if (ChatTabs.CHAT_GPT.equals(tabName)) {
             reply = textCompletionApi.getCompletionText(incomingMsg);
         }
         if (StringUtils.isNotEmpty(reply)) {

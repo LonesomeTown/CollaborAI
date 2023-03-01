@@ -1,12 +1,14 @@
 package com.smu.views.usersmanagement;
 
 import com.smu.data.entity.Person;
+import com.smu.data.enums.Role;
 import com.smu.service.SamplePersonService;
 import com.smu.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -50,10 +52,10 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     private TextField lastName;
     private TextField email;
     private TextField phone;
+    private TextField accessKey;
     private DatePicker dateOfBirth;
-    private TextField occupation;
-    private TextField role;
-    private Checkbox important;
+    private ComboBox<Role> role;
+    private Checkbox isSponsor;
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
@@ -82,7 +84,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         grid.addColumn("email").setAutoWidth(true);
         grid.addColumn("phone").setAutoWidth(true);
         grid.addColumn("dateOfBirth").setAutoWidth(true);
-        grid.addColumn("occupation").setAutoWidth(true);
+        grid.addColumn("accessKey").setAutoWidth(true);
         grid.addColumn("role").setAutoWidth(true);
         LitRenderer<Person> importantRenderer = LitRenderer.<Person>of(
                 "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
@@ -91,7 +93,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
                                 ? "var(--lumo-primary-text-color)"
                                 : "var(--lumo-disabled-text-color)");
 
-        grid.addColumn(importantRenderer).setHeader("Important").setAutoWidth(true);
+        grid.addColumn(importantRenderer).setHeader("Is Sponsor").setAutoWidth(true);
 
         grid.setItems(query -> samplePersonService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
@@ -171,14 +173,18 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
 
         FormLayout formLayout = new FormLayout();
         firstName = new TextField("First Name");
+        firstName.setRequired(true);
         lastName = new TextField("Last Name");
+        lastName.setRequired(true);
         email = new TextField("Email");
+        email.setRequired(true);
         phone = new TextField("Phone");
         dateOfBirth = new DatePicker("Date Of Birth");
-        occupation = new TextField("Occupation");
-        role = new TextField("Role");
-        important = new Checkbox("Important");
-        formLayout.add(firstName, lastName, email, phone, dateOfBirth, occupation, role, important);
+        accessKey = new TextField("Access Key");
+        role = new ComboBox<>("Role");
+        role.setItems(Role.values());
+        isSponsor = new Checkbox("Is Sponsor");
+        formLayout.add(firstName, lastName, email, phone, dateOfBirth, accessKey, role, isSponsor);
 
         editorDiv.add(formLayout);
         createButtonLayout(editorLayoutDiv);

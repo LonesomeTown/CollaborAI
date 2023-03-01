@@ -18,14 +18,14 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class TextCompletionApi {
+public class ChatGptApi {
     private final ApiKeyRepository apiKeyRepository;
     @Value("${api.completion-model}")
     private String model;
     @Value("${api.completion-temperature}")
     private double temperature;
 
-    public TextCompletionApi(ApiKeyRepository apiKeyRepository) {
+    public ChatGptApi(ApiKeyRepository apiKeyRepository) {
         this.apiKeyRepository = apiKeyRepository;
     }
 

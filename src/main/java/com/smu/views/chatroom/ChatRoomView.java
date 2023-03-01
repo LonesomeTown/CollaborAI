@@ -1,7 +1,6 @@
 package com.smu.views.chatroom;
 
-import com.smu.apis.TextCompletionApi;
-import com.smu.data.constant.ApiTypes;
+import com.smu.data.constant.ChatTabs;
 import com.smu.data.entity.ChatRobot;
 import com.smu.security.AuthenticatedUser;
 import com.smu.service.AsyncService;
@@ -16,7 +15,6 @@ import com.vaadin.flow.component.html.Aside;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
@@ -38,11 +36,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.UUID;
 
 @PageTitle("Chat Room")
 @Route(value = "chat-room", layout = MainLayout.class)
@@ -94,14 +89,18 @@ public class ChatRoomView extends HorizontalLayout {
         }
 
         public String getCollaborationTopic(String userId) {
-            return "chat/" + name + userId;
+            if (ChatTabs.DISCUSSION.equals(name)) {
+                return "chat/" + name;
+            } else {
+                return "chat/" + name + userId;
+            }
         }
     }
 
-    private ChatInfo[] chats = new ChatInfo[]{new ChatInfo("Text completion", 0), new ChatInfo("Code completion", 0),
-            new ChatInfo("Image generation", 0)};
+    private final ChatInfo[] chats = new ChatInfo[]{new ChatInfo(ChatTabs.CHAT_GPT, 0), new ChatInfo(ChatTabs.CODE_COMPLETION, 0),
+            new ChatInfo(ChatTabs.IMAGE_GENERATION, 0), new ChatInfo(ChatTabs.DISCUSSION, 0)};
     private ChatInfo currentChat = chats[0];
-    private Tabs tabs;
+    private final Tabs tabs;
     private final AuthenticatedUser authenticatedUser;
     private final AsyncService asyncService;
 
