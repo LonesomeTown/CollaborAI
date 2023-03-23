@@ -1,6 +1,6 @@
 # CollaborAI
 
-CollaborAI is a platform that connects OpenAI API users, enabling them to share their API access keys and collaborate on AI projects.
+CollaborAI is a community that connects OpenAI API users, enabling non-technical individuals to easily experiment with the OpenAI interface and engage in online chat discussions.
 
 ## Running the application
 
