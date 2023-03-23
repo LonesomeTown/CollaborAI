@@ -16,17 +16,17 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AsyncService {
-    private final ChatGptApi textCompletionApi;
+    private final ChatGptApi chatGptApi;
 
-    public AsyncService(ChatGptApi textCompletionApi) {
-        this.textCompletionApi = textCompletionApi;
+    public AsyncService(ChatGptApi chatGptApi) {
+        this.chatGptApi = chatGptApi;
     }
 
     @Async
     public void generateAutoReply(MessageManager messageManager, String incomingMsg, String tabName) {
         String reply = "";
         if (ChatTabs.CHAT_GPT.equals(tabName)) {
-            reply = textCompletionApi.getCompletionText(incomingMsg);
+            reply = chatGptApi.getChatGPTResponse(incomingMsg);
         }
         if (StringUtils.isNotEmpty(reply)) {
             try {

@@ -1,25 +1,30 @@
 package com.smu.service;
 
 import com.smu.data.entity.Person;
+import com.smu.data.entity.PersonDto;
 
+import java.util.List;
 import java.util.Optional;
 
-import com.smu.repository.SamplePersonRepository;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public interface SamplePersonService {
+public interface PersonService {
 
-    Optional<Person> get(ObjectId id);
+    void save(PersonDto entity);
 
-    Person update(Person entity);
+    PersonDto get(ObjectId id);
+
+    PersonDto update(PersonDto entity);
 
     void delete(ObjectId id);
 
-    Page<Person> list(Pageable pageable);
+    List<PersonDto> list();
 
     int count();
+
+    PersonDto getByUserId(ObjectId userId);
 }

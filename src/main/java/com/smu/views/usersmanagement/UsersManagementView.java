@@ -1,14 +1,15 @@
 package com.smu.views.usersmanagement;
 
-import com.smu.data.entity.Person;
+import com.smu.data.entity.PersonDto;
 import com.smu.data.enums.Role;
-import com.smu.service.SamplePersonService;
+import com.smu.service.PersonService;
 import com.smu.views.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -29,12 +30,11 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+
 import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 
 import org.bson.types.ObjectId;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 @PageTitle("Users Management")
@@ -46,7 +46,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     private final String SAMPLEPERSON_ID = "samplePersonID";
     private final String SAMPLEPERSON_EDIT_ROUTE_TEMPLATE = "user-details/%s/edit";
 
-    private final Grid<Person> grid = new Grid<>(Person.class, false);
+    private final Grid<PersonDto> grid = new Grid<>(PersonDto.class, false);
 
     private TextField firstName;
     private TextField lastName;
@@ -54,20 +54,20 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     private TextField phone;
     private TextField accessKey;
     private DatePicker dateOfBirth;
-    private ComboBox<Role> role;
+    private MultiSelectComboBox<Role> roles;
     private Checkbox isSponsor;
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
 
-    private final BeanValidationBinder<Person> binder;
+    private final BeanValidationBinder<PersonDto> binder;
 
-    private Person samplePerson;
+    private PersonDto personDto;
 
-    private final SamplePersonService samplePersonService;
+    private final PersonService personService;
 
-    public UsersManagementView(SamplePersonService samplePersonService) {
-        this.samplePersonService = samplePersonService;
+    public UsersManagementView(PersonService personService) {
+        this.personService = personService;
         addClassNames("users-management-view");
 
         // Create UI
@@ -85,8 +85,8 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         grid.addColumn("phone").setAutoWidth(true);
         grid.addColumn("dateOfBirth").setAutoWidth(true);
         grid.addColumn("accessKey").setAutoWidth(true);
-        grid.addColumn("role").setAutoWidth(true);
-        LitRenderer<Person> importantRenderer = LitRenderer.<Person>of(
+        grid.addColumn("roles").setAutoWidth(true);
+        LitRenderer<PersonDto> importantRenderer = LitRenderer.<PersonDto>of(
                 "<vaadin-icon icon='vaadin:${item.icon}' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: ${item.color};'></vaadin-icon>")
                 .withProperty("icon", important -> important.isSponsor() ? "check" : "minus").withProperty("color",
                         important -> important.isSponsor()
@@ -95,9 +95,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
 
         grid.addColumn(importantRenderer).setHeader("Is Sponsor").setAutoWidth(true);
 
-        grid.setItems(query -> samplePersonService.list(
-                PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
-                .stream());
+        grid.setItems(personService.list());
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
 
         // when a row is selected or deselected, populate form
@@ -111,7 +109,7 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         });
 
         // Configure Form
-        binder = new BeanValidationBinder<>(Person.class);
+        binder = new BeanValidationBinder<>(PersonDto.class);
 
         // Bind fields. This is where you'd define e.g. validation rules
 
@@ -124,11 +122,11 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
 
         save.addClickListener(e -> {
             try {
-                if (this.samplePerson == null) {
-                    this.samplePerson = new Person();
+                if (this.personDto == null) {
+                    this.personDto = new PersonDto();
                 }
-                binder.writeBean(this.samplePerson);
-                samplePersonService.update(this.samplePerson);
+                binder.writeBean(this.personDto);
+                personService.update(this.personDto);
                 clearForm();
                 refreshGrid();
                 Notification.show("Data updated");
@@ -148,9 +146,9 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         Optional<String> samplePersonId = event.getRouteParameters().get(SAMPLEPERSON_ID);
         if (samplePersonId.isPresent()) {
-            Optional<Person> samplePersonFromBackend = samplePersonService.get(new ObjectId(samplePersonId.get()));
-            if (samplePersonFromBackend.isPresent()) {
-                populateForm(samplePersonFromBackend.get());
+            PersonDto samplePersonFromBackend = personService.get(new ObjectId(samplePersonId.get()));
+            if (null != samplePersonFromBackend) {
+                populateForm(samplePersonFromBackend);
             } else {
                 Notification.show(
                         String.format("The requested samplePerson was not found, ID = %s", samplePersonId.get()), 3000,
@@ -181,10 +179,10 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         phone = new TextField("Phone");
         dateOfBirth = new DatePicker("Date Of Birth");
         accessKey = new TextField("Access Key");
-        role = new ComboBox<>("Role");
-        role.setItems(Role.values());
+        roles = new MultiSelectComboBox<>("Roles");
+        roles.setItems(Role.values());
         isSponsor = new Checkbox("Is Sponsor");
-        formLayout.add(firstName, lastName, email, phone, dateOfBirth, accessKey, role, isSponsor);
+        formLayout.add(firstName, lastName, email, phone, dateOfBirth, accessKey, roles, isSponsor);
 
         editorDiv.add(formLayout);
         createButtonLayout(editorLayoutDiv);
@@ -217,9 +215,9 @@ public class UsersManagementView extends Div implements BeforeEnterObserver {
         populateForm(null);
     }
 
-    private void populateForm(Person value) {
-        this.samplePerson = value;
-        binder.readBean(this.samplePerson);
+    private void populateForm(PersonDto value) {
+        this.personDto = value;
+        binder.readBean(this.personDto);
 
     }
 }

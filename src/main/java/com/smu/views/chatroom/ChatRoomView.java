@@ -97,7 +97,7 @@ public class ChatRoomView extends HorizontalLayout {
         }
     }
 
-    private final ChatInfo[] chats = new ChatInfo[]{new ChatInfo(ChatTabs.CHAT_GPT, 0), new ChatInfo(ChatTabs.CODE_COMPLETION, 0),
+    private final ChatInfo[] chats = new ChatInfo[]{new ChatInfo(ChatTabs.CHAT_GPT, 0),
             new ChatInfo(ChatTabs.IMAGE_GENERATION, 0), new ChatInfo(ChatTabs.DISCUSSION, 0)};
     private ChatInfo currentChat = chats[0];
     private final Tabs tabs;
@@ -161,7 +161,6 @@ public class ChatRoomView extends HorizontalLayout {
         // Set the message handler
         messageManager.setMessageHandler(message -> {
             String incomingMessage = message.getMessage().getText();
-
             if (StringUtils.isNotBlank(incomingMessage) && !message.getMessage().getUser().getId().equals(robot.getId())) {
                 asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
             }

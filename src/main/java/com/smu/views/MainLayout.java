@@ -2,8 +2,10 @@ package com.smu.views;
 
 import com.smu.components.appnav.AppNav;
 import com.smu.components.appnav.AppNavItem;
+import com.smu.data.entity.ApiSetting;
 import com.smu.data.entity.User;
 import com.smu.security.AuthenticatedUser;
+import com.smu.views.apisetting.ApiSettingView;
 import com.smu.views.chatroom.ChatRoomView;
 import com.smu.views.personalinformation.PersonalInformationView;
 import com.smu.views.usersmanagement.UsersManagementView;
@@ -81,6 +83,10 @@ public class MainLayout extends AppLayout {
         }
         if (accessChecker.hasAccess(PersonalInformationView.class)) {
             nav.addItem(new AppNavItem("Personal Information", PersonalInformationView.class, "la la-user"));
+
+        }
+        if (accessChecker.hasAccess(ApiSettingView.class)) {
+            nav.addItem(new AppNavItem("API Setting", ApiSettingView.class, "la la-columns"));
 
         }
 

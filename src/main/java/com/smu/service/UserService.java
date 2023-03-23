@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 public interface UserService {
+    User save(User entity);
 
     Optional<User> get(ObjectId id);
 
