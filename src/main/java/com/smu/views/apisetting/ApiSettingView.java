@@ -49,7 +49,7 @@ public class ApiSettingView extends Div {
     private final NumberField temperature = new NumberField("Temperature");
     private final IntegerField maxToken = new IntegerField("Max Tokens");
     private final ComboBox<String> imageSize = new ComboBox<>("Image Size");
-    private final ComboBox<String> responseFormat = new ComboBox<>("responseFormat");
+    private final ComboBox<String> responseFormat = new ComboBox<>("Response Format");
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
@@ -61,7 +61,7 @@ public class ApiSettingView extends Div {
 
     public ApiSettingView(ApiSettingService apiSettingService) {
         this.apiSettingService = apiSettingService;
-        addClassName("api-setting-view");
+        addClassName("personal-information-view");
 
         add(createTitle());
         add(createFormLayout());
