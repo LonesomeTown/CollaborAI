@@ -1,6 +1,6 @@
 package com.smu.service;
 
-import com.smu.apis.ChatGptApi;
+import com.smu.apis.OpenApi;
 import com.smu.data.constant.ChatTabs;
 import com.vaadin.collaborationengine.MessageManager;
 import lombok.extern.slf4j.Slf4j;
@@ -16,17 +16,19 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class AsyncService {
-    private final ChatGptApi chatGptApi;
+    private final OpenApi openApi;
 
-    public AsyncService(ChatGptApi chatGptApi) {
-        this.chatGptApi = chatGptApi;
+    public AsyncService(OpenApi openApi) {
+        this.openApi = openApi;
     }
 
     @Async
     public void generateAutoReply(MessageManager messageManager, String incomingMsg, String tabName) {
         String reply = "";
         if (ChatTabs.CHAT_GPT.equals(tabName)) {
-            reply = chatGptApi.getChatGPTResponse(incomingMsg);
+            reply = openApi.getChatGPTResponse(incomingMsg);
+        }else if(ChatTabs.IMAGE_GENERATION.equals(tabName)){
+            reply = openApi.getImageGeneratorResponse(incomingMsg);
         }
         if (StringUtils.isNotEmpty(reply)) {
             try {

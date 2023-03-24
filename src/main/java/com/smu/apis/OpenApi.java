@@ -1,13 +1,18 @@
 package com.smu.apis;
 
 import com.smu.data.entity.ApiKey;
+import com.smu.data.entity.ApiSetting;
+import com.smu.data.enums.ApiTypes;
 import com.smu.repository.ApiKeyRepository;
+import com.smu.service.ApiSettingService;
 import com.theokanning.openai.completion.CompletionChoice;
 import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
+import com.theokanning.openai.image.CreateImageRequest;
+import com.theokanning.openai.image.Image;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * TextCompletionApi
@@ -24,20 +30,22 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class ChatGptApi {
+public class OpenApi {
     private final ApiKeyRepository apiKeyRepository;
     @Value("${api.completion-model}")
     private String model;
     @Value("${api.completion-temperature}")
     private double temperature;
+    private final ApiSettingService apiSettingService;
 
-    public ChatGptApi(ApiKeyRepository apiKeyRepository) {
+    public OpenApi(ApiKeyRepository apiKeyRepository, ApiSettingService apiSettingService) {
         this.apiKeyRepository = apiKeyRepository;
+        this.apiSettingService = apiSettingService;
     }
 
     public String getCompletionText(String userInput) {
         String accessKey = getAccessKey();
-        if(StringUtils.isEmpty(accessKey)){
+        if (StringUtils.isEmpty(accessKey)) {
             return "";
         }
         OpenAiService openAiService = new OpenAiService(accessKey);
@@ -52,9 +60,9 @@ public class ChatGptApi {
         return choices.get(0).getText().replace("\n\n", "");
     }
 
-    public String getChatGPTResponse(String userInput){
+    public String getChatGPTResponse(String userInput) {
         String accessKey = getAccessKey();
-        if(StringUtils.isEmpty(accessKey)){
+        if (StringUtils.isEmpty(accessKey)) {
             return "";
         }
         OpenAiService openAiService = new OpenAiService(accessKey);
@@ -74,8 +82,27 @@ public class ChatGptApi {
         return choices.get(0).getMessage().getContent().replace("\n\n", "");
     }
 
+    public String getImageGeneratorResponse(String userInput) {
+        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.IMAGE_GENERATION.name());
+        String accessKey = getAccessKey();
+        if (StringUtils.isEmpty(accessKey)) {
+            return "";
+        }
+        OpenAiService openAiService = new OpenAiService(accessKey);
+        log.info("Start requesting Image Generation API, input text is: {}", userInput);
+        String responseFormat = apiSetting.isPresent() ? apiSetting.get().getResponseFormat() : "url";
+        CreateImageRequest createImageRequest = CreateImageRequest.builder()
+                .prompt(userInput)
+                .size(apiSetting.isPresent() ? apiSetting.get().getImageSize() : "256x256")
+                .responseFormat(responseFormat)
+                .build();
+        List<Image> data = openAiService.createImage(createImageRequest).getData();
+        log.info("End requesting Image-Generation API, response is: {}", data.toString());
+        return "b64_json".equals(responseFormat) ? data.get(0).getB64Json() : data.get(0).getUrl();
+    }
 
-    private String getAccessKey(){
+
+    private String getAccessKey() {
         ApiKey apiKey = apiKeyRepository.findAccessKeyByIsActive(true);
         if (null == apiKey) {
             return "";

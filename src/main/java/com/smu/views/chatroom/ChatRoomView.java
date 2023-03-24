@@ -124,14 +124,21 @@ public class ChatRoomView extends HorizontalLayout {
         }
         UserInfo userInfo = new UserInfo(userId, username);
         UserInfo robot = new ChatRobot();
-
+        robot.setImage("/static/Chatbot.png");
         tabs = new Tabs();
         for (ChatInfo chat : chats) {
             // Listen for new messages in each chat so we can update the "unread" count
             MessageManager mm = new MessageManager(this, userInfo, chat.getCollaborationTopic(userInfo.getId()));
+            MessageManager robotManager = new MessageManager(this, robot, chat.getCollaborationTopic(userInfo.getId()));
             mm.setMessageHandler(context -> {
+                //Set unread information
                 if (currentChat != chat) {
                     chat.incrementUnread();
+                }
+                String incomingMessage = context.getMessage().getText();
+                //If the incoming message is not from robot the call the api
+                if (StringUtils.isNotBlank(incomingMessage) && !context.getMessage().getUser().getId().equals(robot.getId())) {
+                    asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
                 }
             });
 
@@ -161,6 +168,7 @@ public class ChatRoomView extends HorizontalLayout {
         // Set the message handler
         messageManager.setMessageHandler(message -> {
             String incomingMessage = message.getMessage().getText();
+            //If the incoming message is not from robot the call the api
             if (StringUtils.isNotBlank(incomingMessage) && !message.getMessage().getUser().getId().equals(robot.getId())) {
                 asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
             }
