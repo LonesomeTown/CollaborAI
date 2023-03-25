@@ -4,6 +4,7 @@ import com.smu.data.constant.ChatTabs;
 import com.smu.data.entity.ChatRobot;
 import com.smu.security.AuthenticatedUser;
 import com.smu.service.AsyncService;
+import com.smu.service.MyMessagePersister;
 import com.smu.views.MainLayout;
 import com.vaadin.collaborationengine.CollaborationAvatarGroup;
 import com.vaadin.collaborationengine.CollaborationMessageInput;
@@ -11,6 +12,7 @@ import com.vaadin.collaborationengine.CollaborationMessageList;
 import com.vaadin.collaborationengine.MessageManager;
 import com.vaadin.collaborationengine.UserInfo;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Aside;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Header;
@@ -24,6 +26,7 @@ import com.vaadin.flow.component.tabs.Tabs.Orientation;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
+import com.vaadin.flow.server.WebBrowser;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.Background;
@@ -36,6 +39,12 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
 import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
 import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
+import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,11 +98,7 @@ public class ChatRoomView extends HorizontalLayout {
         }
 
         public String getCollaborationTopic(String userId) {
-            if (ChatTabs.DISCUSSION.equals(name)) {
-                return "chat/" + name;
-            } else {
-                return "chat/" + name + userId;
-            }
+            return "chat/" + name + userId;
         }
     }
 
@@ -101,12 +106,8 @@ public class ChatRoomView extends HorizontalLayout {
             new ChatInfo(ChatTabs.IMAGE_GENERATION, 0), new ChatInfo(ChatTabs.DISCUSSION, 0)};
     private ChatInfo currentChat = chats[0];
     private final Tabs tabs;
-    private final AuthenticatedUser authenticatedUser;
-    private final AsyncService asyncService;
 
-    public ChatRoomView(AuthenticatedUser authenticatedUser, AsyncService asyncService) {
-        this.authenticatedUser = authenticatedUser;
-        this.asyncService = asyncService;
+    public ChatRoomView(AuthenticatedUser authenticatedUser, AsyncService asyncService, MyMessagePersister myMessagePersister) {
         addClassNames("chat-room-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
@@ -116,14 +117,26 @@ public class ChatRoomView extends HorizontalLayout {
         // identifier, and the user's real name. You can also provide the users
         // avatar by passing an url to the image as a third parameter, or by
         // configuring an `ImageProvider` to `avatarGroup`.
+
         String username = "";
         String userId = "";
         if (authenticatedUser.get().isPresent()) {
             username = authenticatedUser.get().get().getUsername();
             userId = authenticatedUser.get().get().getId().toString();
+        } else {
+            //If user doesn't login, use client's ip address as userId;
+            final WebBrowser webBrowser = UI.getCurrent().getSession().getBrowser();
+            userId = webBrowser.getAddress();
+            username = "Visitor";
         }
         UserInfo userInfo = new UserInfo(userId, username);
-        UserInfo robot = new ChatRobot();
+        String hexString = Long.toHexString(System.currentTimeMillis());
+        StringBuilder objectId = new StringBuilder("");
+        objectId.append(hexString);
+        while(objectId.length() < 24) {
+            objectId.append("0");
+        }
+        UserInfo robot = new ChatRobot(objectId.toString());
         robot.setImage("/static/Chatbot.png");
         tabs = new Tabs();
         for (ChatInfo chat : chats) {
@@ -136,9 +149,13 @@ public class ChatRoomView extends HorizontalLayout {
                     chat.incrementUnread();
                 }
                 String incomingMessage = context.getMessage().getText();
+                Instant time = context.getMessage().getTime();
+                Instant plusSeconds = Instant.now().minusSeconds(2L);
                 //If the incoming message is not from robot the call the api
-                if (StringUtils.isNotBlank(incomingMessage) && !context.getMessage().getUser().getId().equals(robot.getId())) {
-                    asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
+                if (!Objects.equals(chat.getCollaborationTopic(userInfo.getId()), ChatTabs.DISCUSSION)) {
+                    if (StringUtils.isNotBlank(incomingMessage) && !context.getMessage().getUser().getId().equals(robot.getId()) && time.isAfter(plusSeconds)) {
+                        asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
+                    }
                 }
             });
 
@@ -161,18 +178,6 @@ public class ChatRoomView extends HorizontalLayout {
         // constructor argument to get the information from there.
         CollaborationMessageInput input = new CollaborationMessageInput(list);
         input.setWidthFull();
-
-        MessageManager messageManager = new MessageManager(this, userInfo, currentChat.getCollaborationTopic(userInfo.getId()));
-        MessageManager robotManager = new MessageManager(this, robot, currentChat.getCollaborationTopic(userInfo.getId()));
-
-        // Set the message handler
-        messageManager.setMessageHandler(message -> {
-            String incomingMessage = message.getMessage().getText();
-            //If the incoming message is not from robot the call the api
-            if (StringUtils.isNotBlank(incomingMessage) && !message.getMessage().getUser().getId().equals(robot.getId())) {
-                asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
-            }
-        });
 
         // Layouting
         VerticalLayout chatContainer = new VerticalLayout();

@@ -32,10 +32,6 @@ import java.util.Optional;
 @Slf4j
 public class OpenApi {
     private final ApiKeyRepository apiKeyRepository;
-    @Value("${api.completion-model}")
-    private String model;
-    @Value("${api.completion-temperature}")
-    private double temperature;
     private final ApiSettingService apiSettingService;
 
     public OpenApi(ApiKeyRepository apiKeyRepository, ApiSettingService apiSettingService) {
@@ -44,6 +40,7 @@ public class OpenApi {
     }
 
     public String getCompletionText(String userInput) {
+        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.IMAGE_GENERATION.name());
         String accessKey = getAccessKey();
         if (StringUtils.isEmpty(accessKey)) {
             return "";
@@ -52,8 +49,8 @@ public class OpenApi {
         log.info("Start requesting Text-Completion API, input text is: {}", userInput);
         CompletionRequest completionRequest = CompletionRequest.builder()
                 .prompt(userInput)
-                .model(model)
-                .temperature(temperature)
+                .model(apiSetting.isPresent()?apiSetting.get().getModel():"gpt-3.5-turbo")
+                .temperature(apiSetting.isPresent()?apiSetting.get().getTemperature():0.5)
                 .build();
         List<CompletionChoice> choices = openAiService.createCompletion(completionRequest).getChoices();
         log.info("End requesting Text-Completion API, response is: {}", choices.toString());
@@ -61,6 +58,7 @@ public class OpenApi {
     }
 
     public String getChatGPTResponse(String userInput) {
+        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.IMAGE_GENERATION.name());
         String accessKey = getAccessKey();
         if (StringUtils.isEmpty(accessKey)) {
             return "";
@@ -74,8 +72,9 @@ public class OpenApi {
         chatMessages.add(chatMessage);
         ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
                 .messages(chatMessages)
-                .model("gpt-3.5-turbo")
-                .temperature(temperature)
+                .model(apiSetting.isPresent()?apiSetting.get().getModel():"gpt-3.5-turbo")
+                .temperature(apiSetting.isPresent()?apiSetting.get().getTemperature():0.5)
+                .maxTokens(apiSetting.isPresent()?apiSetting.get().getMaxToken():500)
                 .build();
         List<ChatCompletionChoice> choices = openAiService.createChatCompletion(completionRequest).getChoices();
         log.info("End requesting Chat-Completion API, response is: {}", choices.toString());
