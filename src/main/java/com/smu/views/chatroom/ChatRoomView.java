@@ -98,7 +98,11 @@ public class ChatRoomView extends HorizontalLayout {
         }
 
         public String getCollaborationTopic(String userId) {
-            return "chat/" + name + userId;
+            if (ChatTabs.DISCUSSION.equals(name)) {
+                return "chat/" + name;
+            } else {
+                return "chat/" + name + userId;
+            }
         }
     }
 
@@ -107,7 +111,7 @@ public class ChatRoomView extends HorizontalLayout {
     private ChatInfo currentChat = chats[0];
     private final Tabs tabs;
 
-    public ChatRoomView(AuthenticatedUser authenticatedUser, AsyncService asyncService, MyMessagePersister myMessagePersister) {
+    public ChatRoomView(AuthenticatedUser authenticatedUser, AsyncService asyncService) {
         addClassNames("chat-room-view", Width.FULL, Display.FLEX, Flex.AUTO);
         setSpacing(false);
 
@@ -130,14 +134,13 @@ public class ChatRoomView extends HorizontalLayout {
             username = "Visitor";
         }
         UserInfo userInfo = new UserInfo(userId, username);
-        String hexString = Long.toHexString(System.currentTimeMillis());
-        StringBuilder objectId = new StringBuilder("");
-        objectId.append(hexString);
-        while(objectId.length() < 24) {
-            objectId.append("0");
-        }
-        UserInfo robot = new ChatRobot(objectId.toString());
-        robot.setImage("/static/Chatbot.png");
+//        String hexString = Long.toHexString(System.currentTimeMillis());
+//        StringBuilder objectId = new StringBuilder("");
+//        objectId.append(hexString);
+//        while(objectId.length() < 24) {
+//            objectId.append("0");
+//        }
+        UserInfo robot = new ChatRobot("77777777");
         tabs = new Tabs();
         for (ChatInfo chat : chats) {
             // Listen for new messages in each chat so we can update the "unread" count
@@ -152,9 +155,13 @@ public class ChatRoomView extends HorizontalLayout {
                 Instant time = context.getMessage().getTime();
                 Instant plusSeconds = Instant.now().minusSeconds(2L);
                 //If the incoming message is not from robot the call the api
-                if (!Objects.equals(chat.getCollaborationTopic(userInfo.getId()), ChatTabs.DISCUSSION)) {
+                if (!Objects.equals(currentChat.name, ChatTabs.DISCUSSION)) {
                     if (StringUtils.isNotBlank(incomingMessage) && !context.getMessage().getUser().getId().equals(robot.getId()) && time.isAfter(plusSeconds)) {
-                        asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
+                        if("Visitor".equals(context.getMessage().getUser().getName())){
+                            robotManager.submit("Please login to use this function.");
+                        }else {
+                            asyncService.generateAutoReply(robotManager, incomingMessage, currentChat.name);
+                        }
                     }
                 }
             });

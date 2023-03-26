@@ -40,7 +40,7 @@ public class OpenApi {
     }
 
     public String getCompletionText(String userInput) {
-        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.IMAGE_GENERATION.name());
+        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.CHAT_GPT.name());
         String accessKey = getAccessKey();
         if (StringUtils.isEmpty(accessKey)) {
             return "";
@@ -58,7 +58,7 @@ public class OpenApi {
     }
 
     public String getChatGPTResponse(String userInput) {
-        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.IMAGE_GENERATION.name());
+        Optional<ApiSetting> apiSetting = apiSettingService.findByName(ApiTypes.CHAT_GPT.name());
         String accessKey = getAccessKey();
         if (StringUtils.isEmpty(accessKey)) {
             return "";

@@ -101,6 +101,7 @@ public class ApiSettingView extends Div {
                 models.addAll(Arrays.asList("gpt-4", "gpt-4-0314", "gpt-4-32k", "gpt-4-32k-0314", "gpt-3.5-turbo", "gpt-3.5-turbo-0301"));
                 model.setValue("gpt-3.5-turbo");
                 temperature.setValue(0.5);
+                maxToken.setValue(200);
                 imageSize.clear();
                 responseFormat.clear();
             } else if (ApiTypes.IMAGE_GENERATION.name().equals(name)) {
