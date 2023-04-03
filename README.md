@@ -3,10 +3,14 @@
 CollaborAI is a community that connects OpenAI API users, enabling non-technical individuals to easily experiment with the OpenAI interface and engage in online chat discussions.
 
 ## Running the application
+Required Environment： JDK 11, Node.js > 14
 
 The project is a standard Maven project. To run it from the command line,
 type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
 http://localhost:8080 in your browser.
+
+I also provide the jar file `collaborai-1.0-SNAPSHOT.jar` under the target folder.
+You can use command: `java -jar collaborai-1.0-SNAPSHOT.jar` to run this project.
 
 You can also import the project to your IDE of choice as you would with any
 Maven project. Read more on [how to import Vaadin projects to different 
